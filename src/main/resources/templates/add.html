@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>汽车添加</title>
+</head>
+<script src="../static/js/jquery-1.8.2.min.js"></script>
+
+<body>
+<div th:include="common.html"></div>
+<script type="text/javascript">
+    $(function () {
+        //当厂家名字离焦时进行检查
+        $("#carName").blur(function () {
+            var carName = $("#carName").val();
+            //判断不能为空
+            if (carName!=null&&carName!=''){
+                //ajax校验数据
+                $.post(
+                    "/car/checkCarName",
+                    {'carName':carName},
+                    function (data) {
+                        //重复则弹窗并且清空而且按钮不可用
+                        if (data=='no'){
+                            alert("厂名不能重复");
+                            $("#carName").html("");
+                            $("#sub").attr("disabled",true);
+                        }
+                    }
+
+                )
+            }else {
+                $("#sub").attr("disabled",true);
+            }
+        })
+        //聚焦时可以提交
+        $("#carName").focus(function () {
+            $("#sub").attr("disabled",false);
+        })
+
+
+        //检查折扣是否大于15
+        $("#rebate").blur(function () {
+            var rebate = $("#rebate").val();
+            if (rebate!=null&&rebate!=''){
+                //折扣大于15
+                if (rebate>15){
+                    //弹窗警告
+                    alert("折扣不能超过15%");
+                    //值为空
+                    $("#rebate").html("");
+                    //按钮置灰
+                    $("#sub").attr("disabled",true);
+                }
+            }else {
+                alert("不能为空");
+                $("#sub").attr("disabled",true);
+            }
+        })
+        $("#rebate").focus(function () {
+            $("#sub").attr("disabled",false);
+        })
+
+
+        //二级联动如果第一级发生改变则进行联动
+        $("#type").change(function () {
+            //获取到值
+            var carPid = $("#type").val();
+            //为空防止重复
+            $("#carPid").html("");
+            if (carPid!=null&&carPid!=''){
+                //ajax进行校验
+                $.post(
+                    "/car/carType",
+                    {'carPid':carPid},
+                    function (data) {
+                        //转成js格式
+                        var list = eval(data);
+                        //赋值拼接
+                        for (var i=0;i<list.length;i++) {
+                            $("#carPid").append("<option value='"+list[i].typeId+"'>"+list[i].typeName+"</option>")
+                        }
+                    },
+                    "json"
+                );
+            }
+        })
+    })
+</script>
+<center>
+    <h2>厂商注册</h2>
+    <form action="/car/add"  method="post">
+        <input type="hidden" name="carId" th:value="${car?.carId}">
+        厂商名称：<input type="text" name="carName" id="carName" th:value="${car?.carName}"><br>
+        创建时间：<input type="text" name="creatTime" id="datetimepicker" th:value="${#dates.format(car?.creatTime,'yyyy-MM-dd HH:mm')}"><br>
+        汽车颜色：<input type="text" name="carColor" th:value="${car?.carColor}"><br>
+        汽车类型：
+        <select name="carPid" id="type">
+            <option th:selected="${car?.carPid} eq ${type?.typeId}" th:each="type:${types}" th:text="${type.typeName}" th:value="${type.typeId}" ></option>
+        </select><br>
+        汽车品牌：
+        <select id="carPid" name="typeId">
+            <option></option>
+        </select><br>
+        汽车价格：<input type="text" name="price" th:value="${car?.price}"><br>
+        折扣：<input type="text" name="rebate" id="rebate" th:value="${car?.rebate}"><br>
+        <input type="submit" value="提交" id="sub" class="btn-primary">
+    </form>
+</center>
+</body>
+</html>

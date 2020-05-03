@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<link rel="stylesheet" th:href="@{../static/css/bootstrap.min.css}">
+<script type="text/javascript" src="../static/js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $("#delAll").click(function () {
+            var carIds = "";
+            if (confirm("你确定要删除吗？")){
+                    $('input:checkbox').each(function () {
+                        if (this.checked==true){
+                            carIds+=this.value+',';
+                        }
+                    });
+                    $.post(
+                        "/car/delByIds?carIds="+carIds,
+                        function () {
+                            alert("删除成功")
+                        }
+                    )
+                }
+        })
+    })
+
+</script>
+<body>
+<center>
+    <h2>汽车管理</h2>
+    <a th:href="@{/car/toAdd}">添加</a>
+    <button id="delAll" class="btn-danger">批量删除</button>
+    <form action="/car/carList" method="post">
+        厂商：<input type="text" name="carName">
+        描述：<input type="text" name="describes" >
+        <button type="submit" class="btn-primary"> 搜索</button>
+    </form>
+    <table class="table-hover table-striped table-bordered" align="center">
+        <tr>
+            <td></td>
+            <td>编号</td>
+            <td>厂商</td>
+            <td>创建时间</td>
+            <td>描述</td>
+            <td>颜色</td>
+            <td>价格</td>
+            <td>折扣</td>
+            <td>实际购买价格</td>
+            <td colspan="2">编辑</td>
+        </tr>
+        <tr th:each="car,carStat:${cars}">
+            <td><input type="checkbox" th:value="${car.carId}"></td>
+            <td th:text="${car.carId}"></td>
+            <td th:text="${car.carName}"></td>
+            <td th:text="${#dates.format(car.creatTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${car.describes}"></td>
+            <td th:text="${car.carColor}"></td>
+            <td th:text="${car.price}"></td>
+            <td th:text="${car.rebate}+'%'"></td>
+            <td th:text="${car.realPrice}"></td>
+            <td><a th:href="@{/car/queryById(carId=${car.carId})}">修改</a></td>
+            <td><a th:href="@{/car/delById(carId=${car.carId})}">删除</a></td>
+        </tr>
+        <tr>
+            <td colspan="11" align="center">
+                <span th:text="共+${pageInfo.total}+条"></span>
+                <a th:href="@{/car/carList(cPage=1)}">首页</a>
+                <a th:if="${pageInfo.pageNum!=1}" th:href="@{/car/carList(cPage=${pageInfo.prePage})}">上一页</a>
+                <a th:if="${pageInfo.pageNum!=pageInfo.lastPage}" th:href="@{/car/carList(cPage=${pageInfo.nextPage})}">下一页</a>
+                <a th:href="@{/car/carList(cPage=${pageInfo.lastPage})}">尾页</a>
+                <span th:text="当前是第+${pageInfo.pageNum}+页共+${pageInfo.pages}+页"></span>
+            </td>
+        </tr>
+    </table>
+</center>
+
+</body>
+</html>
